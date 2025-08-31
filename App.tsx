@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { AppConfig, Command, CommandUpdateData, Settings } from './types';
-import { LogLevel } from './types';
+import type { AppConfig, Command, CommandUpdateData } from './types';
+import { CommandStatus, LogLevel } from './types';
 import AppCard from './components/AppCard';
 import AddAppModal from './components/AddAppModal';
 import CommandOutputModal from './components/CommandOutputModal';
@@ -17,15 +17,15 @@ type AppTab = 'apps' | 'info';
 const App: React.FC = () => {
     const [apps, setApps] = useState<AppConfig[]>([]);
     const [isAddModalOpen, setAddModalOpen] = useState(false);
-    const [logModalData, setLogModalData] = useState<{ appName: string; command: Command } | null>(null);
+    const [logModalAppId, setLogModalAppId] = useState<string | null>(null);
+    const [logModalCommandId, setLogModalCommandId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<AppTab>('apps');
-    const { addLog, setSettings, settings } = useLogger();
+    const { addLog, setSettings } = useLogger();
 
     // Load initial data (apps and settings)
     useEffect(() => {
         addLog(LogLevel.INFO, 'Application starting up...');
         
-        // Load settings
         electronAPI.loadSettings().then(loadedSettings => {
             setSettings(loadedSettings);
             addLog(LogLevel.DEBUG, `Settings loaded: ${JSON.stringify(loadedSettings)}`);
@@ -34,7 +34,6 @@ const App: React.FC = () => {
             addLog(LogLevel.ERROR, `Failed to load settings: ${error}`);
         });
 
-        // Load apps
         try {
             addLog(LogLevel.DEBUG, "Attempting to load apps from localStorage.");
             const savedApps = localStorage.getItem('node-build-ui-apps');
@@ -48,7 +47,7 @@ const App: React.FC = () => {
             console.error("Failed to load apps from localStorage", error);
             addLog(LogLevel.ERROR, `Failed to load apps from localStorage: ${error}`);
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [addLog, setSettings]);
 
     // Persist apps to localStorage whenever they change
     useEffect(() => {
@@ -63,25 +62,23 @@ const App: React.FC = () => {
 
 
     const handleCommandUpdate = useCallback((data: CommandUpdateData) => {
-        let appName = '';
-        let commandName = '';
-
         setApps(prevApps =>
             prevApps.map(app => {
                 if (app.id === data.appId) {
-                    appName = app.name;
                     return {
                         ...app,
                         commands: app.commands.map(cmd => {
                             if (cmd.id === data.commandId) {
-                                commandName = cmd.name;
-                                if (cmd.status !== data.status) { // Log only on status change
-                                    if(data.status === 'success' || data.status === 'error'){
-                                        const logLevel = data.status === 'success' ? LogLevel.INFO : LogLevel.ERROR;
-                                        addLog(logLevel, `Command "${cmd.script}" for app "${app.name}" finished with status: ${data.status.toUpperCase()}.`);
-                                    }
+                                // Reset output when a command starts running
+                                const isStarting = cmd.status !== CommandStatus.RUNNING && data.status === CommandStatus.RUNNING;
+                                const newOutput = isStarting ? data.output : (cmd.output || '') + data.output;
+                                
+                                if (data.status === CommandStatus.SUCCESS || data.status === CommandStatus.ERROR) {
+                                    const logLevel = data.status === CommandStatus.SUCCESS ? LogLevel.INFO : LogLevel.ERROR;
+                                    addLog(logLevel, `Command "${cmd.script}" for app "${app.name}" finished with status: ${data.status.toUpperCase()}.`);
                                 }
-                                return { ...cmd, status: data.status, output: data.output };
+
+                                return { ...cmd, status: data.status, output: newOutput };
                             }
                             return cmd;
                         }),
@@ -90,18 +87,6 @@ const App: React.FC = () => {
                 return app;
             })
         );
-
-        // Also update the log modal if it's open for the command that just updated
-        setLogModalData(prevData => {
-            if (prevData && prevData.command.id === data.commandId) {
-                 return {
-                    appName: appName || prevData.appName,
-                    command: { ...prevData.command, status: data.status, output: data.output }
-                };
-            }
-            return prevData;
-        });
-
     }, [addLog]);
 
     useEffect(() => {
@@ -123,9 +108,18 @@ const App: React.FC = () => {
         }
     };
 
-    const handleViewLogs = (appName: string, command: Command) => {
-        setLogModalData({ appName, command });
+    const handleViewLogs = (appId: string, commandId: string) => {
+        setLogModalAppId(appId);
+        setLogModalCommandId(commandId);
     };
+    
+    const handleCloseLogModal = () => {
+        setLogModalAppId(null);
+        setLogModalCommandId(null);
+    }
+
+    const logModalApp = apps.find(app => app.id === logModalAppId);
+    const logModalCommand = logModalApp?.commands.find(cmd => cmd.id === logModalCommandId);
 
     const TabButton = ({ tab, icon, children }: { tab: AppTab, icon: React.ReactNode, children: React.ReactNode }) => (
         <button
@@ -172,7 +166,7 @@ const App: React.FC = () => {
                                         <AppCard
                                             key={app.id}
                                             app={app}
-                                            onViewLogs={(command) => handleViewLogs(app.name, command)}
+                                            onViewLogs={(command) => handleViewLogs(app.id, command.id)}
                                             onDeleteApp={handleDeleteApp}
                                         />
                                     ))}
@@ -200,10 +194,10 @@ const App: React.FC = () => {
             />
 
             <CommandOutputModal
-                isOpen={!!logModalData}
-                onClose={() => setLogModalData(null)}
-                command={logModalData?.command || null}
-                appName={logModalData?.appName || ''}
+                isOpen={!!logModalCommand}
+                onClose={handleCloseLogModal}
+                command={logModalCommand || null}
+                appName={logModalApp?.name || ''}
             />
         </div>
     );

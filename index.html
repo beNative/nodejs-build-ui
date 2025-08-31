@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.tailwindcss.com https://aistudiocdn.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node.js App Build UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,21 +22,31 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #718096; /* gray-600 */
         }
+        /* Simple prose styles for markdown rendering */
+        .prose { color: #d1d5db; }
+        .prose h1, .prose h2, .prose h3 { color: #fff; border-bottom: 1px solid #4a5568; padding-bottom: 0.3em; }
+        .prose a { color: #60a5fa; }
+        .prose code { background-color: #1f2937; color: #e5e7eb; padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 3px; }
+        .prose pre { background-color: #111827; padding: 1em; border-radius: 0.5em; }
+        .prose blockquote { border-left: 0.25em solid #4a5568; padding-left: 1em; color: #9ca3af; }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        .prose li { margin-top: 0.25em; }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1",
-    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0"
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1"
   }
 }
 </script>
 </head>
 <body class="bg-gray-900 text-white">
     <div id="root"></div>
-    <script src="./bundle.js"></script>
+    <script src="./dist/bundle.js"></script>
 </body>
 </html>

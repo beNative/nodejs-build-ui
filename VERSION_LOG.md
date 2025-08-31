@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - YYYY-MM-DD
+
+### Fixed
+-   **Blank Screen on Start:** Resolved the critical issue where the application would show a blank screen. This was caused by a combination of a conflicting `importmap` in `index.html` and the absence of the actual Electron main and preload scripts.
+-   **Command Output:** Corrected the logic for displaying command output to ensure it streams correctly and doesn't show stale data.
+
+### Added
+-   **Electron Main Process (`electron.mjs`):** Implemented the core backend process for the Electron app. It now handles window creation, application lifecycle, and all Node.js-based operations (file system, command execution).
+-   **Electron Preload Script (`preload.mjs`):** Created a secure bridge to expose safe backend functions to the React frontend using `contextBridge`.
+-   **Enhanced Logging:** Added detailed startup logs in the main process and preload script to make future debugging easier. DevTools now open automatically in development mode.
+
+### Changed
+-   **Architecture:** The application is now a fully-fledged Electron app with a proper main/renderer/preload architecture, moving from a mocked API to a live implementation.
+-   **Security:** Added a Content Security Policy (CSP) to `index.html` to enhance security.
+-   **Build Process:** Unified build paths to use a consistent `dist` directory for all outputs, improving reliability.
+
 ## [1.1.0] - YYYY-MM-DD
 
 ### Added

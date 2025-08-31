@@ -1,13 +1,16 @@
 import type { ElectronAPI } from '../types';
 
-// This file now points to the API exposed by the preload script in a real Electron environment.
-// The mock is no longer needed as we have a real backend.
+console.log('Attempting to access window.electronAPI...');
+
 const api = window.electronAPI;
 
 if (!api) {
-    // This error will be thrown if the app is run in a standard browser
-    // instead of the Electron wrapper.
-    throw new Error("electronAPI is not available. This app must be run in an Electron environment.");
+    const errorMessage = "electronAPI is not available on the window object. This app must be run in an Electron environment and the preload script must be correctly configured.";
+    console.error(errorMessage);
+    // You might want to display this error in the UI instead of throwing
+    throw new Error(errorMessage);
+} else {
+    console.log('Successfully connected to electronAPI.');
 }
 
 const electronAPI: ElectronAPI = api;

@@ -1,14 +1,15 @@
 {
   "name": "nodejs-build-ui",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A UI for rapid building of Node.js apps.",
   "main": "electron.mjs",
+  "homepage": "./",
   "type": "module",
   "scripts": {
-    "copy-docs": "cpx \"*.md\" \".\"",
-    "build": "esbuild index.tsx --bundle --outfile=bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"production\"' && npm run copy-docs",
-    "dev:build": "esbuild index.tsx --bundle --outfile=bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"development\"' --watch",
-    "dev:electron": "npm run copy-docs && wait-on bundle.js && electron .",
+    "copy-docs": "cpx \"*.md\" \"dist\"",
+    "build": "esbuild index.tsx --bundle --outfile=dist/bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"production\"' && npm run copy-docs",
+    "dev:build": "esbuild index.tsx --bundle --outfile=dist/bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"development\"' --watch",
+    "dev:electron": "wait-on dist/bundle.js && electron .",
     "dev": "concurrently \"npm:dev:build\" \"npm:dev:electron\"",
     "start": "electron .",
     "package:win": "npm run build && electron-builder --win"
@@ -24,7 +25,9 @@
   "license": "ISC",
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -34,8 +37,6 @@
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
     "esbuild": "^0.21.5",
-    "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
     "wait-on": "^7.2.0"
@@ -44,18 +45,17 @@
     "appId": "com.ai.nodejsbuildui",
     "productName": "Node.js Build UI",
     "files": [
-      "bundle.js",
-      "index.html",
+      "dist/**/*",
       "electron.mjs",
       "preload.mjs",
-      "package.json",
-      "*.md"
+      "index.html",
+      "package.json"
     ],
     "win": {
       "target": "nsis"
     },
     "directories": {
-      "output": "dist"
+      "output": "dist-electron"
     }
   }
 }

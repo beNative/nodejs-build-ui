@@ -1,6 +1,6 @@
 # Node.js Build UI
 
-A user-friendly desktop application for managing and automating build, test, and deployment tasks for multiple Node.js applications. Built with React, TypeScript, and designed to run as an Electron app for seamless local development workflows.
+A user-friendly desktop application for managing and automating build, test, and deployment tasks for multiple Node.js applications. Built with React, TypeScript, and Electron for seamless local development workflows.
 
 ## Features
 
@@ -20,6 +20,13 @@ A user-friendly desktop application for managing and automating build, test, and
 - **Build Tool:** esbuild
 - **Desktop Framework:** Electron
 - **Styling:** Tailwind CSS
+
+## Architecture Overview
+
+This application follows the standard Electron multi-process architecture:
+- **Main Process (`electron.mjs`):** The Node.js backend that controls the application lifecycle, creates browser windows, and handles all native OS interactions (e.g., file system access, running shell commands).
+- **Renderer Process (React App):** The frontend UI that runs inside a Chromium browser window. For security, it does not have direct access to Node.js APIs.
+- **Preload Script (`preload.mjs`):** A secure bridge that exposes specific, safe functions from the Main Process to the Renderer Process, allowing the UI to request backend operations.
 
 ## Getting Started
 
@@ -54,7 +61,7 @@ A user-friendly desktop application for managing and automating build, test, and
     ```
 
 5.  **Package for Windows:**
-    This command will first build the production assets and then package them into a Windows installer (`.exe`) located in the `dist` folder.
+    This command will first build the production assets and then package them into a Windows installer (`.exe`) located in the `dist-electron` folder.
     ```bash
     npm run package:win
     ```

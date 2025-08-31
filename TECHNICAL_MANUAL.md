@@ -4,7 +4,7 @@ This document outlines the technical architecture of the Node.js Build UI applic
 
 ## 1. Core Technologies
 
--   **Electron:** The application is designed as an Electron app, allowing it to run as a cross-platform desktop application using web technologies.
+-   **Electron:** The application is a cross-platform desktop application built using the Electron framework.
 -   **React:** The user interface is built as a single-page application using React 18.
 -   **TypeScript:** All code is written in TypeScript for type safety and improved developer experience.
 -   **esbuild:** A fast JavaScript bundler is used to compile the JSX/TSX source code into a single JavaScript file for the browser.
@@ -14,27 +14,19 @@ This document outlines the technical architecture of the Node.js Build UI applic
 
 ```
 .
+├── dist/               # Build output for the frontend
 ├── components/         # Reusable React components
-│   ├── AddAppModal.tsx
-│   ├── AppCard.tsx
-│   ├── CommandOutputModal.tsx
-│   ├── Icons.tsx
-│   ├── InfoTab.tsx
-│   ├── LoggingPanel.tsx
-│   └── StatusBar.tsx
 ├── contexts/           # React Context providers
-│   └── LoggerContext.tsx
-├── services/           # Mock services and APIs
+├── services/           # API clients
 │   └── electronAPI.ts
 ├── App.tsx             # Main application component
-├── index.html          # HTML entry point
+├── index.html          # HTML entry point for Electron
 ├── index.tsx           # React root renderer
+├── electron.mjs        # Electron Main Process (backend)
+├── preload.mjs         # Electron Preload Script (security bridge)
 ├── package.json        # Project manifest and scripts
 ├── types.ts            # Shared TypeScript types
-├── README.md           # Documentation files...
-├── FUNCTIONAL_MANUAL.md
-├── TECHNICAL_MANUAL.md
-└── VERSION_LOG.md
+└── *.md                # Documentation files
 ```
 
 ## 3. State Management
@@ -44,30 +36,33 @@ This document outlines the technical architecture of the Node.js Build UI applic
 -   **Context API:** The logging system uses React's Context API (`LoggerContext.tsx`) to provide logging functionality to any component in the tree without prop drilling.
 -   **Local Storage:** The list of configured applications (`apps`) is persisted between sessions by saving it to the browser's `localStorage`.
 
-## 4. Electron Integration (Mocked)
+## 4. Electron Integration
 
-In a real Electron application, there are three main processes: Main, Renderer, and Preload.
+The application follows Electron's standard and secure multi-process architecture.
 
--   **Main Process (`electron.mjs`):** This would be the Node.js backend. It has access to OS-level features like the filesystem (`fs`), child processes (`child_process`), and native dialogs.
--   **Renderer Process (our React App):** This is the frontend code running in a Chromium window. It does not have direct access to Node.js APIs for security reasons.
--   **Preload Script:** A script that runs before the renderer process, acting as a bridge between the Main and Renderer processes. It exposes specific, secure APIs from the Main process to the Renderer process via the `window` object.
+-   **Main Process (`electron.mjs`):** This is the application's Node.js backend. It runs with full Node.js privileges and is responsible for:
+    -   Creating and managing application windows (`BrowserWindow`).
+    -   Handling the application lifecycle events.
+    -   Interacting with the operating system using Node.js APIs like `fs` (for file system access), `child_process` (to run shell commands), and Electron's `dialog` module (for native file dialogs).
+    -   Listening for events from the renderer process via `ipcMain`.
 
-This project simulates this architecture using the mock file `services/electronAPI.ts`. This file exports an object that mimics the API that would be exposed by a preload script.
+-   **Renderer Process (The React App):** This is the frontend code running in a Chromium window (`index.html` and `bundle.js`). For security, this process does not have direct access to Node.js APIs. All backend operations must be requested through the preload script.
+
+-   **Preload Script (`preload.mjs`):** This script acts as a secure bridge between the Main and Renderer processes. It runs in a privileged context and uses Electron's `contextBridge` to expose a specific, safe API (`window.electronAPI`) to the renderer process. This prevents the frontend from accessing powerful, potentially dangerous Node APIs directly. The `services/electronAPI.ts` file then consumes this exposed API.
 
 ### Key `electronAPI` functions:
 
--   `runCommand`: In a real app, this would use `child_process.spawn` to execute shell commands and stream `stdout`/`stderr` back to the renderer.
--   `selectDirectory`: Would use Electron's `dialog.showOpenDialog`.
--   `getMarkdownContent`, `loadSettings`, `saveSettings`: Would use the `fs` module to read and write files on the user's disk.
+-   `runCommand`: Invokes an `ipcMain` handler in `electron.mjs` that uses `child_process.spawn` to execute shell commands and streams `stdout`/`stderr` back to the renderer.
+-   `selectDirectory`: Uses Electron's `dialog.showOpenDialog`.
+-   `getMarkdownContent`, `loadSettings`, `saveSettings`: Use the `fs` module in the main process to read and write files on the user's disk.
 
 ## 5. Build Process
 
--   `npm run dev`: Runs `esbuild` in watch mode to continuously build `bundle.js` and runs `electron .` to launch the app. `wait-on` ensures Electron doesn't start before the first build is complete.
--   `npm run build`: Performs a one-time production build using `esbuild` and copies the markdown documentation into the root directory so it can be packaged with the application.
+-   `npm run dev`: Runs `esbuild` in watch mode to continuously build `bundle.js` into the `/dist` folder and concurrently launches the Electron app. `wait-on` ensures Electron doesn't start before the first build is complete.
+-   `npm run build`: Performs a one-time production build using `esbuild` and copies the markdown documentation into the `/dist` directory so it can be packaged with the application.
 
 ## 6. Packaging
 
-To distribute the application, a packager like **Electron Forge** or **Electron Builder** would be used. The configuration for these tools would specify:
--   The main entry point (`electron.mjs`).
--   Files to be included in the final package (e.g., `index.html`, `bundle.js`, and the `.md` documentation files).
--   Icons and platform-specific settings (for Windows, macOS, Linux).
+The application uses **Electron Builder** for packaging. The configuration is located in the `build` section of `package.json`.
+-   `npm run package:win`: This script first runs the production `build` script and then uses `electron-builder` to package the app into a Windows installer.
+-   The `files` array in the `build` config specifies all necessary assets to be included in the final package, including the main and preload scripts, the `dist` folder containing the UI code and documentation, and `index.html`.
