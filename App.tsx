@@ -1,22 +1,24 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import type { AppConfig, Command, CommandUpdateData } from './types';
-import { CommandStatus, LogLevel } from './types';
+import { CommandStatus, LogLevel, LogChannel } from './types';
 import AppCard from './components/AppCard';
 import AddAppModal from './components/AddAppModal';
 import CommandOutputModal from './components/CommandOutputModal';
-import electronAPI, { isElectron } from './services/electronAPI';
+import electronAPI from './services/electronAPI';
 import { PlusIcon, AppIcon, InfoIcon, ExclamationTriangleIcon } from './components/Icons';
 import { useLogger } from './contexts/LoggerContext';
 import LoggingPanel from './components/LoggingPanel';
 import StatusBar from './components/StatusBar';
 import InfoTab from './components/InfoTab';
-
+import { useDebug } from './contexts/DebugContext';
+import DebugPanel from './components/DebugPanel';
+import { useLifecycleLogger } from './hooks/useLifecycleLogger';
 
 type AppTab = 'apps' | 'info';
 
 const BrowserModeBanner = () => {
-    if (isElectron) return null;
+    // electronAPI is a proxy, so we check the original window object
+    if (window.electronAPI) return null;
 
     return (
         <div className="bg-yellow-500/20 border-b-2 border-yellow-700 text-yellow-200 px-8 py-2 flex items-center justify-center text-sm font-medium flex-shrink-0">
@@ -27,37 +29,43 @@ const BrowserModeBanner = () => {
 };
 
 const App: React.FC = () => {
+    useLifecycleLogger('App');
     const [apps, setApps] = useState<AppConfig[]>([]);
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [logModalAppId, setLogModalAppId] = useState<string | null>(null);
     const [logModalCommandId, setLogModalCommandId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<AppTab>('apps');
-    const { addLog, setSettings } = useLogger();
+    const { addLog, settings, setSettings } = useLogger();
+    const { isDebugPanelOpen, setAppState } = useDebug();
+
+    // Update debug context with current state
+    useEffect(() => {
+        setAppState({ apps, settings, activeTab });
+    }, [apps, settings, activeTab, setAppState]);
 
     // Load initial data (apps and settings)
     useEffect(() => {
-        addLog(LogLevel.INFO, 'Application starting up...');
+        addLog(LogChannel.APP, LogLevel.INFO, 'Application starting up...');
         
         electronAPI.loadSettings().then(loadedSettings => {
             setSettings(loadedSettings);
-            addLog(LogLevel.DEBUG, `Settings loaded: ${JSON.stringify(loadedSettings)}`);
         }).catch(error => {
             console.error("Failed to load settings", error);
-            addLog(LogLevel.ERROR, `Failed to load settings: ${error}`);
+            addLog(LogChannel.APP, LogLevel.ERROR, `Failed to load settings: ${error}`);
         });
 
         try {
-            addLog(LogLevel.DEBUG, "Attempting to load apps from localStorage.");
+            addLog(LogChannel.APP, LogLevel.DEBUG, "Attempting to load apps from localStorage.");
             const savedApps = localStorage.getItem('node-build-ui-apps');
             if (savedApps) {
                 setApps(JSON.parse(savedApps));
-                addLog(LogLevel.INFO, 'Successfully loaded saved app configurations.');
+                addLog(LogChannel.APP, LogLevel.INFO, 'Successfully loaded saved app configurations.');
             } else {
-                addLog(LogLevel.INFO, 'No saved app configurations found.');
+                addLog(LogChannel.APP, LogLevel.INFO, 'No saved app configurations found.');
             }
         } catch (error) {
             console.error("Failed to load apps from localStorage", error);
-            addLog(LogLevel.ERROR, `Failed to load apps from localStorage: ${error}`);
+            addLog(LogChannel.APP, LogLevel.ERROR, `Failed to load apps from localStorage: ${error}`);
         }
     }, [addLog, setSettings]);
 
@@ -65,13 +73,12 @@ const App: React.FC = () => {
     useEffect(() => {
         try {
             localStorage.setItem('node-build-ui-apps', JSON.stringify(apps));
-            addLog(LogLevel.DEBUG, 'App configurations saved to localStorage.');
+            addLog(LogChannel.APP, LogLevel.DEBUG, 'App configurations saved to localStorage.');
         } catch (error) {
             console.error("Failed to save apps to localStorage", error);
-            addLog(LogLevel.ERROR, `Failed to save apps to localStorage: ${error}`);
+            addLog(LogChannel.APP, LogLevel.ERROR, `Failed to save apps to localStorage: ${error}`);
         }
     }, [apps, addLog]);
-
 
     const handleCommandUpdate = useCallback((data: CommandUpdateData) => {
         setApps(prevApps =>
@@ -81,13 +88,12 @@ const App: React.FC = () => {
                         ...app,
                         commands: app.commands.map(cmd => {
                             if (cmd.id === data.commandId) {
-                                // Reset output when a command starts running
                                 const isStarting = cmd.status !== CommandStatus.RUNNING && data.status === CommandStatus.RUNNING;
                                 const newOutput = isStarting ? data.output : (cmd.output || '') + data.output;
                                 
                                 if (data.status === CommandStatus.SUCCESS || data.status === CommandStatus.ERROR) {
                                     const logLevel = data.status === CommandStatus.SUCCESS ? LogLevel.INFO : LogLevel.ERROR;
-                                    addLog(logLevel, `Command "${cmd.script}" for app "${app.name}" finished with status: ${data.status.toUpperCase()}.`);
+                                    addLog(LogChannel.APP, logLevel, `Command "${cmd.script}" for app "${app.name}" finished with status: ${data.status.toUpperCase()}.`);
                                 }
 
                                 return { ...cmd, status: data.status, output: newOutput };
@@ -116,7 +122,7 @@ const App: React.FC = () => {
         const appToDelete = apps.find(app => app.id === appId);
         if (appToDelete && window.confirm(`Are you sure you want to delete "${appToDelete.name}"?`)) {
             setApps(prevApps => prevApps.filter(app => app.id !== appId));
-            addLog(LogLevel.INFO, `Removed application: "${appToDelete.name}".`);
+            addLog(LogChannel.APP, LogLevel.INFO, `Removed application: "${appToDelete.name}".`);
         }
     };
 
@@ -148,7 +154,8 @@ const App: React.FC = () => {
     )
 
     return (
-        <div className="h-screen w-screen bg-gray-900 text-white flex flex-col">
+        <div className="h-screen w-screen bg-gray-900 text-white flex flex-col relative">
+            {isDebugPanelOpen && <DebugPanel />}
             <BrowserModeBanner />
             <div className="flex-grow flex flex-col overflow-y-hidden">
                 <div className="container mx-auto px-8 pt-8 flex flex-col flex-grow">

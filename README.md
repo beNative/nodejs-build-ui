@@ -2,6 +2,8 @@
 
 A user-friendly desktop application for managing and automating build, test, and deployment tasks for multiple Node.js applications. Built with React, TypeScript, and Electron for seamless local development workflows.
 
+This version has been heavily instrumented with diagnostic and debugging tools to serve as a learning aid for understanding the internals of a modern web/desktop application.
+
 ## Features
 
 - **Project Dashboard:** View all your configured Node.js applications in one clean interface.
@@ -9,9 +11,19 @@ A user-friendly desktop application for managing and automating build, test, and
 - **One-Click Automation:** Run predefined commands like `git pull`, `npm install`, `npm run build`, and `npm test` with a single click.
 - **Real-time Output:** View the real-time output of any running command in a detailed log viewer.
 - **Status Indicators:** Instantly see the status (idle, running, success, error) of each command for each project.
-- **Built-in Documentation:** Access functional and technical manuals directly within the app.
-- **Live Logging Panel:** A collapsible panel displays application-level logs (DEBUG, INFO, WARNING, ERROR) with filtering capabilities.
 - **Persistent Configuration:** Your list of applications is saved locally, so you don't have to reconfigure it on every launch.
+
+### Over-engineered Debugging Suite
+
+-   **Startup Tracer:** An on-screen log that appears on application start to trace the boot sequence, from HTML parsing to React mounting, to easily diagnose blank-screen issues.
+-   **Advanced Logging Panel:** A multi-channel logging console for deep insight:
+    -   **Channels:** Logs are separated into `APP` (application logic), `SYSTEM` (React lifecycle), and `IPC` (frontend-backend communication) channels.
+    -   **Searchable:** Instantly filter all log messages with a text search.
+-   **Floating Debug Panel:** A powerful diagnostic window accessible from the status bar, featuring:
+    -   **Live State Inspector:** A real-time view of the entire React application state.
+    -   **Component Render Profiler:** See a live feed of which components are mounting, unmounting, and re-rendering to understand React's behavior.
+    -   **Debug Actions:** Buttons to test error boundaries, add test logs, and clear application storage.
+-   **Transparent IPC:** All communication between the React frontend and the Electron backend is automatically logged, showing every function call, its arguments, and its return value.
 
 ## Tech Stack
 
@@ -24,9 +36,9 @@ A user-friendly desktop application for managing and automating build, test, and
 ## Architecture Overview
 
 This application follows the standard Electron multi-process architecture:
-- **Main Process (`electron.mjs`):** The Node.js backend that controls the application lifecycle, creates browser windows, and handles all native OS interactions (e.g., file system access, running shell commands).
+- **Main Process (`electron.js`):** The Node.js backend that controls the application lifecycle, creates browser windows, and handles all native OS interactions (e.g., file system access, running shell commands).
 - **Renderer Process (React App):** The frontend UI that runs inside a Chromium browser window. For security, it does not have direct access to Node.js APIs.
-- **Preload Script (`preload.mjs`):** A secure bridge that exposes specific, safe functions from the Main Process to the Renderer Process, allowing the UI to request backend operations.
+- **Preload Script (`preload.js`):** A secure bridge that exposes specific, safe functions from the Main Process to the Renderer Process, allowing the UI to request backend operations.
 
 ## Getting Started
 
@@ -65,12 +77,3 @@ This application follows the standard Electron multi-process architecture:
     ```bash
     npm run package:win
     ```
-
-## How to Use
-
-1.  Launch the application.
-2.  Click the "Add App" button.
-3.  Fill in the application name and select the project's root directory on your local machine.
-4.  The new application will appear on the dashboard as a card.
-5.  On the card, you can click the "play" icon next to any command to execute it.
-6.  Click the terminal icon to view the detailed log output for a specific command.

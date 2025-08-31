@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { AppConfig, Command } from '../types';
-import { CommandStatus, LogLevel } from '../types';
+// Fix: Imported LogChannel to be used with the addLog function.
+import { CommandStatus, LogLevel, LogChannel } from '../types';
 import electronAPI from '../services/electronAPI';
 import { FolderIcon } from './Icons';
 import { useLogger } from '../contexts/LoggerContext';
@@ -32,7 +33,8 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
             if (!appName) {
                 const derivedName = path.split(/[\\/]/).pop() || '';
                 setAppName(derivedName);
-                addLog(LogLevel.DEBUG, `Auto-filled app name to "${derivedName}" from path.`);
+                // Fix: Added the missing LogChannel.APP argument to the addLog call.
+                addLog(LogChannel.APP, LogLevel.DEBUG, `Auto-filled app name to "${derivedName}" from path.`);
             }
         }
     };
@@ -41,7 +43,8 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
         e.preventDefault();
         if (!appName || !appPath) {
             alert('Please fill in both app name and path.');
-            addLog(LogLevel.WARNING, 'Add app form submission failed: missing name or path.');
+            // Fix: Added the missing LogChannel.APP argument to the addLog call.
+            addLog(LogChannel.APP, LogLevel.WARNING, 'Add app form submission failed: missing name or path.');
             return;
         }
 
@@ -52,7 +55,8 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
             commands: defaultCommands.map(cmd => ({ ...cmd, id: crypto.randomUUID() })),
         };
         onAddApp(newApp);
-        addLog(LogLevel.INFO, `New application added: "${appName}"`);
+        // Fix: Added the missing LogChannel.APP argument to the addLog call.
+        addLog(LogChannel.APP, LogLevel.INFO, `New application added: "${appName}"`);
         setAppName('');
         setAppPath('');
         onClose();

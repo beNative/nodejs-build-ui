@@ -34,9 +34,16 @@ export enum LogLevel {
   ERROR = 'ERROR',
 }
 
+export enum LogChannel {
+  APP = 'APP',      // For application logic, user actions, etc.
+  SYSTEM = 'SYSTEM',  // For lifecycle events, profiling, etc.
+  IPC = 'IPC',        // For Electron frontend-backend communication.
+}
+
 export interface LogMessage {
   id: string;
   timestamp: Date;
+  channel: LogChannel;
   level: LogLevel;
   message: string;
 }
@@ -60,5 +67,6 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    traceStartup: (message: string) => void;
   }
 }

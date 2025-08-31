@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const FolderIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -63,7 +62,6 @@ export const AppIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-
 export const ChevronUpIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -87,5 +85,24 @@ export const SaveIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const ExclamationTriangleIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+    </svg>
+);
+
+export const BugIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m-6.75-3.75h13.5M12 21a9 9 0 110-18 9 9 0 010 18z" />
+    </svg>
+);
+
+export const EyeIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.432 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
+  
+export const WrenchScrewdriverIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.52-.634 1.226-1.162 2.006-1.524l3.572-1.65-1.65-3.572c-.362-.78-.89-1.486-1.524-2.006l-3.03-2.496M11.42 15.17L6.873 20.717A2.652 2.652 0 013 17.25l5.877-5.877m0 0l2.496-3.03c.52-.634 1.226-1.162 2.006-1.524l3.572-1.65-1.65-3.572c-.362-.78-.89-1.486-1.524-2.006L9.53 3.03l-3.03 2.496c-.634.52-1.162 1.226-1.524 2.006L3.3 11.1l3.572 1.65c.78.362 1.486.89 2.006 1.524l3.03 2.496z" />
     </svg>
 );

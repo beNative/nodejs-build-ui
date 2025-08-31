@@ -1,6 +1,6 @@
 # Technical Manual
 
-This document outlines the technical architecture of the Node.js Build UI application.
+This document outlines the technical architecture and the extensive diagnostic features of the Node.js Build UI application.
 
 ## 1. Core Technologies
 
@@ -11,58 +11,57 @@ This document outlines the technical architecture of the Node.js Build UI applic
 -   **Tailwind CSS:** A utility-first CSS framework is used for styling the application.
 
 ## 2. Project Structure
-
-```
-.
-├── dist/               # Build output for the frontend
-├── components/         # Reusable React components
-├── contexts/           # React Context providers
-├── services/           # API clients
-│   └── electronAPI.ts
-├── App.tsx             # Main application component
-├── index.html          # HTML entry point for Electron
-├── index.tsx           # React root renderer
-├── electron.mjs        # Electron Main Process (backend)
-├── preload.mjs         # Electron Preload Script (security bridge)
-├── package.json        # Project manifest and scripts
-├── types.ts            # Shared TypeScript types
-└── *.md                # Documentation files
-```
+(See `README.md` for a simplified structure view)
 
 ## 3. State Management
 
 -   **Local Component State:** Most UI state (like modal visibility) is managed within individual React components using `useState`.
 -   **App-level State:** The primary application state, including the list of configured `apps` and `settings`, is managed in the main `App.tsx` component.
--   **Context API:** The logging system uses React's Context API (`LoggerContext.tsx`) to provide logging functionality to any component in the tree without prop drilling.
+-   **Context API:** The application makes heavy use of React's Context API for state management and dependency injection:
+    -   `LoggerContext`: Provides logging functionality to any component in the tree.
+    -   `DebugContext`: Provides the global application state and render profiling events to the diagnostic tools.
 -   **Local Storage:** The list of configured applications (`apps`) is persisted between sessions by saving it to the browser's `localStorage`.
 
 ## 4. Electron Integration
 
 The application follows Electron's standard and secure multi-process architecture.
 
--   **Main Process (`electron.mjs`):** This is the application's Node.js backend. It runs with full Node.js privileges and is responsible for:
-    -   Creating and managing application windows (`BrowserWindow`).
-    -   Handling the application lifecycle events.
-    -   Interacting with the operating system using Node.js APIs like `fs` (for file system access), `child_process` (to run shell commands), and Electron's `dialog` module (for native file dialogs).
-    -   Listening for events from the renderer process via `ipcMain`.
+-   **Main Process (`electron.js`):** This is the application's Node.js backend. It has been instrumented with extensive `console.log` statements to trace its lifecycle and IPC handling in the terminal where you launch the app.
+-   **Renderer Process (The React App):** This is the frontend code.
+-   **Preload Script (`preload.js`):** This script acts as a secure bridge, using `contextBridge` to expose a safe API (`window.electronAPI`) to the renderer.
 
--   **Renderer Process (The React App):** This is the frontend code running in a Chromium window (`index.html` and `bundle.js`). For security, this process does not have direct access to Node.js APIs. All backend operations must be requested through the preload script.
+## 5. Diagnostic and Debugging Systems
 
--   **Preload Script (`preload.mjs`):** This script acts as a secure bridge between the Main and Renderer processes. It runs in a privileged context and uses Electron's `contextBridge` to expose a specific, safe API (`window.electronAPI`) to the renderer process. This prevents the frontend from accessing powerful, potentially dangerous Node APIs directly. The `services/electronAPI.ts` file then consumes this exposed API.
+### 5.1. Startup Tracer
 
-### Key `electronAPI` functions:
+-   **Implementation:** A `<pre>` element and an inline `<script>` in `index.html`.
+-   **Purpose:** To provide immediate visual feedback during the application's boot sequence, running even before the main JavaScript bundle is parsed. It helps diagnose "white screen" issues by showing if the HTML fails to load, if a script fails to parse, or if React fails to mount. The `index.tsx` file continues to write to this tracer until React has successfully mounted.
 
--   `runCommand`: Invokes an `ipcMain` handler in `electron.mjs` that uses `child_process.spawn` to execute shell commands and streams `stdout`/`stderr` back to the renderer.
--   `selectDirectory`: Uses Electron's `dialog.showOpenDialog`.
--   `getMarkdownContent`, `loadSettings`, `saveSettings`: Use the `fs` module in the main process to read and write files on the user's disk.
+### 5.2. IPC Inspector
 
-## 5. Build Process
+-   **Implementation:** A JavaScript `Proxy` object in `services/electronAPI.ts`.
+-   **Purpose:** The proxy wraps the entire `electronAPI` object. It intercepts every function call and event listener registration, automatically logging the action, its arguments, and its results to the **IPC channel** in the logging panel. This makes the communication between the frontend and backend completely transparent for debugging.
 
--   `npm run dev`: Runs `esbuild` in watch mode to continuously build `bundle.js` into the `/dist` folder and concurrently launches the Electron app. `wait-on` ensures Electron doesn't start before the first build is complete.
--   `npm run build`: Performs a one-time production build using `esbuild` and copies the markdown documentation into the `/dist` directory so it can be packaged with the application.
+### 5.3. Advanced Logging System
 
-## 6. Packaging
+-   **Implementation:** `LoggerContext`, `LoggingPanel.tsx`.
+-   **Purpose:** A highly organized, filterable logging system.
+-   **Channels:**
+    -   **APP:** For general application logic, user actions, and state changes.
+    -   **SYSTEM:** For React component lifecycle events (mount, unmount, re-render). This is primarily driven by the `useLifecycleLogger` hook.
+    -   **IPC:** For all frontend-backend communication, automatically populated by the IPC Inspector.
+-   **Features:** The UI panel allows filtering by channel and by a free-text search.
 
-The application uses **Electron Builder** for packaging. The configuration is located in the `build` section of `package.json`.
--   `npm run package:win`: This script first runs the production `build` script and then uses `electron-builder` to package the app into a Windows installer.
--   The `files` array in the `build` config specifies all necessary assets to be included in the final package, including the main and preload scripts, the `dist` folder containing the UI code and documentation, and `index.html`.
+### 5.4. Debug Panel
+
+-   **Implementation:** `DebugPanel.tsx`, `DebugContext.tsx`.
+-   **Purpose:** A central, floating UI for deep, real-time introspection of the application.
+-   **Features:**
+    -   **State Inspector:** Renders a live, formatted view of the entire global state object from `App.tsx`.
+    -   **Render Profiler:** Consumes events from the `useLifecycleLogger` hook and displays a running list of component render events, helping to identify performance issues or unexpected render loops.
+    -   **Debug Actions:** Provides buttons to trigger specific events, like testing the application's `ErrorBoundary` or clearing all `localStorage` data to reset the app.
+
+### 5.5. Lifecycle Logger Hook
+
+-   **Implementation:** `hooks/useLifecycleLogger.ts`.
+-   **Purpose:** A custom React hook that, when added to a component, automatically logs its mount, unmount, and re-render events to the **SYSTEM channel**, and also pushes render events to the Debug Panel's profiler. This is an invaluable tool for understanding how and why components update.

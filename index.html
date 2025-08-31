@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node.js App Build UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,6 +31,23 @@
         .prose ul { list-style-type: disc; }
         .prose ol { list-style-type: decimal; }
         .prose li { margin-top: 0.25em; }
+        /* Startup Tracer Styles */
+        #startup-tracer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0,0,0,0.8);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 500px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 5px;
+        }
     </style>
 <script type="importmap">
 {
@@ -39,13 +56,35 @@
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
-    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1"
+    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1",
+    "electron": "https://aistudiocdn.com/electron@^37.4.0",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
+    "url": "https://aistudiocdn.com/url@^0.11.4",
+    "child_process": "https://aistudiocdn.com/child_process@^1.0.2",
+    "fs/": "https://aistudiocdn.com/fs@^0.0.1-security/"
   }
 }
 </script>
 </head>
 <body class="bg-gray-900 text-white">
+    <div id="startup-tracer">
+        <div style="font-weight: bold; border-bottom: 1px solid #00ff00; margin-bottom: 5px;">Startup Trace:</div>
+    </div>
     <div id="root"></div>
+
+    <script>
+        // This inline script runs BEFORE React and is critical for debugging blank screens.
+        const tracer = document.getElementById('startup-tracer');
+        window.traceStartup = (message) => {
+            const time = new Date().toLocaleTimeString();
+            const p = document.createElement('p');
+            p.style.margin = '0';
+            p.innerHTML = `<span style="color: #888;">[${time}]</span> ${message}`;
+            tracer.appendChild(p);
+            console.log(`[Startup Trace] ${message}`);
+        };
+        traceStartup('HTML parsed. Inline tracer script running.');
+    </script>
     <script src="./dist/bundle.js"></script>
 </body>
 </html>
