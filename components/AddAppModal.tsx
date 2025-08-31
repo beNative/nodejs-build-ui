@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import type { AppConfig, Command } from '../types';
-import { CommandStatus } from '../types';
+import { CommandStatus, LogLevel } from '../types';
 import electronAPI from '../services/electronAPI';
 import { FolderIcon } from './Icons';
+import { useLogger } from '../contexts/LoggerContext';
 
 interface AddAppModalProps {
     isOpen: boolean;
@@ -21,6 +21,7 @@ const defaultCommands: Omit<Command, 'id'>[] = [
 const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) => {
     const [appName, setAppName] = useState('');
     const [appPath, setAppPath] = useState('');
+    const { addLog } = useLogger();
 
     if (!isOpen) return null;
 
@@ -29,7 +30,9 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
         if (path) {
             setAppPath(path);
             if (!appName) {
-                setAppName(path.split(/[\\/]/).pop() || '');
+                const derivedName = path.split(/[\\/]/).pop() || '';
+                setAppName(derivedName);
+                addLog(LogLevel.DEBUG, `Auto-filled app name to "${derivedName}" from path.`);
             }
         }
     };
@@ -38,6 +41,7 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
         e.preventDefault();
         if (!appName || !appPath) {
             alert('Please fill in both app name and path.');
+            addLog(LogLevel.WARNING, 'Add app form submission failed: missing name or path.');
             return;
         }
 
@@ -48,6 +52,7 @@ const AddAppModal: React.FC<AddAppModalProps> = ({ isOpen, onClose, onAddApp }) 
             commands: defaultCommands.map(cmd => ({ ...cmd, id: crypto.randomUUID() })),
         };
         onAddApp(newApp);
+        addLog(LogLevel.INFO, `New application added: "${appName}"`);
         setAppName('');
         setAppPath('');
         onClose();

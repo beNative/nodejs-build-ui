@@ -1,10 +1,9 @@
-
 import React from 'react';
 import type { AppConfig, Command } from '../types';
-import { CommandStatus } from '../types';
+import { CommandStatus, LogLevel } from '../types';
 import { FolderIcon, TerminalIcon, PlayIcon, CheckCircleIcon, XCircleIcon, SpinnerIcon, TrashIcon } from './Icons';
 import electronAPI from '../services/electronAPI';
-
+import { useLogger } from '../contexts/LoggerContext';
 
 interface AppCardProps {
     app: AppConfig;
@@ -13,8 +12,11 @@ interface AppCardProps {
 }
 
 const AppCard: React.FC<AppCardProps> = ({ app, onViewLogs, onDeleteApp }) => {
+    const { addLog } = useLogger();
+    
     const runCommand = (command: Command) => {
         if (command.status === CommandStatus.RUNNING) return;
+        addLog(LogLevel.INFO, `Executing command "${command.script}" for app "${app.name}".`);
         electronAPI.runCommand(app.id, command.id, app.path, command.script);
     };
 

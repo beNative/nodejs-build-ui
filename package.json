@@ -1,14 +1,14 @@
-
 {
   "name": "nodejs-build-ui",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A UI for rapid building of Node.js apps.",
   "main": "electron.mjs",
   "type": "module",
   "scripts": {
-    "build": "esbuild index.tsx --bundle --outfile=bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"production\"'",
+    "copy-docs": "cpx \"*.md\" \".\"",
+    "build": "esbuild index.tsx --bundle --outfile=bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"production\"' && npm run copy-docs",
     "dev:build": "esbuild index.tsx --bundle --outfile=bundle.js --platform=browser --sourcemap --target=es2020 --define:process.env.NODE_ENV='\"development\"' --watch",
-    "dev:electron": "wait-on bundle.js && electron .",
+    "dev:electron": "npm run copy-docs && wait-on bundle.js && electron .",
     "dev": "concurrently \"npm:dev:build\" \"npm:dev:electron\"",
     "start": "electron ."
   },
@@ -29,8 +29,11 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "concurrently": "^8.2.2",
+    "cpx": "^1.5.0",
     "electron": "^31.0.2",
     "esbuild": "^0.21.5",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
     "wait-on": "^7.2.0"

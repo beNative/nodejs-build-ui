@@ -1,20 +1,69 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Node.js Build UI
 
-# Run and deploy your AI Studio app
+A user-friendly desktop application for managing and automating build, test, and deployment tasks for multiple Node.js applications. Built with React, TypeScript, and designed to run as an Electron app for seamless local development workflows.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1bvhar1dTkAyy-9P9MtS5eOcLmkxJpUDs
+- **Project Dashboard:** View all your configured Node.js applications in one clean interface.
+- **Configurable Projects:** Easily add new projects by specifying a name and local directory path.
+- **One-Click Automation:** Run predefined commands like `git pull`, `npm install`, `npm run build`, and `npm test` with a single click.
+- **Real-time Output:** View the real-time output of any running command in a detailed log viewer.
+- **Status Indicators:** Instantly see the status (idle, running, success, error) of each command for each project.
+- **Built-in Documentation:** Access functional and technical manuals directly within the app.
+- **Live Logging Panel:** A collapsible panel displays application-level logs (DEBUG, INFO, WARNING, ERROR) with filtering capabilities.
+- **Persistent Configuration:** Your list of applications is saved locally, so you don't have to reconfigure it on every launch.
 
-## Run Locally
+## Tech Stack
 
-**Prerequisites:**  Node.js
+- **UI Framework:** React 18
+- **Language:** TypeScript
+- **Build Tool:** esbuild
+- **Desktop Framework:** Electron
+- **Styling:** Tailwind CSS
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm
+
+### Installation & Running
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd nodejs-build-ui
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Run in development mode:**
+    This command will concurrently build the React code and launch the Electron app. The builder will watch for file changes and rebuild automatically.
+    ```bash
+    npm run dev
+    ```
+
+4.  **Build for production:**
+    To create a production build of the React app:
+    ```bash
+    npm run build
+    ```
+
+5.  **Package the Electron app:**
+    (Packaging scripts using Electron Forge or Electron Builder would be added here).
+    ```bash
+    npm run package # Example command
+    ```
+
+## How to Use
+
+1.  Launch the application.
+2.  Click the "Add App" button.
+3.  Fill in the application name and select the project's root directory on your local machine.
+4.  The new application will appear on the dashboard as a card.
+5.  On the card, you can click the "play" icon next to any command to execute it.
+6.  Click the terminal icon to view the detailed log output for a specific command.
