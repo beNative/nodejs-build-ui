@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { AppConfig, Command, CommandUpdateData } from './types';
 import { CommandStatus, LogLevel } from './types';
 import AppCard from './components/AppCard';
 import AddAppModal from './components/AddAppModal';
 import CommandOutputModal from './components/CommandOutputModal';
-import electronAPI from './services/electronAPI';
-import { PlusIcon, AppIcon, InfoIcon } from './components/Icons';
+import electronAPI, { isElectron } from './services/electronAPI';
+import { PlusIcon, AppIcon, InfoIcon, ExclamationTriangleIcon } from './components/Icons';
 import { useLogger } from './contexts/LoggerContext';
 import LoggingPanel from './components/LoggingPanel';
 import StatusBar from './components/StatusBar';
@@ -13,6 +14,17 @@ import InfoTab from './components/InfoTab';
 
 
 type AppTab = 'apps' | 'info';
+
+const BrowserModeBanner = () => {
+    if (isElectron) return null;
+
+    return (
+        <div className="bg-yellow-500/20 border-b-2 border-yellow-700 text-yellow-200 px-8 py-2 flex items-center justify-center text-sm font-medium flex-shrink-0">
+            <ExclamationTriangleIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+            <p><strong>Browser Mode:</strong> You are running in a web browser. Backend features like running commands and file system access are disabled.</p>
+        </div>
+    );
+};
 
 const App: React.FC = () => {
     const [apps, setApps] = useState<AppConfig[]>([]);
@@ -137,6 +149,7 @@ const App: React.FC = () => {
 
     return (
         <div className="h-screen w-screen bg-gray-900 text-white flex flex-col">
+            <BrowserModeBanner />
             <div className="flex-grow flex flex-col overflow-y-hidden">
                 <div className="container mx-auto px-8 pt-8 flex flex-col flex-grow">
                     <header className="flex justify-between items-center mb-6 flex-shrink-0">

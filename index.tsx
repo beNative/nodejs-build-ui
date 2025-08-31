@@ -1,7 +1,9 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { LoggerProvider } from './contexts/LoggerContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 console.log('index.tsx: Script start. Preparing to render React application.');
 
@@ -14,9 +16,11 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <LoggerProvider>
-      <App />
-    </LoggerProvider>
+    <ErrorBoundary>
+      <LoggerProvider>
+        <App />
+      </LoggerProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
