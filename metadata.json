@@ -1,0 +1,5 @@
+{
+  "name": "Node.js App Build UI",
+  "description": "A user interface for managing and automating build and deployment tasks for multiple Node.js applications. Designed to run as an Electron app for local development workflows.",
+  "requestFramePermissions": []
+}
