@@ -47,6 +47,7 @@
       "bundle.js",
       "index.html",
       "electron.mjs",
+      "preload.mjs",
       "package.json",
       "*.md"
     ],

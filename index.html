@@ -3,22 +3,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.tailwindcss.com https://aistudiocdn.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node.js App Build UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'gray-900': '#1a202c',
-                        'gray-800': '#2d3748',
-                        'gray-700': '#4a5568',
-                    }
-                }
-            }
+    <style>
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-    </script>
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* gray-600 */
+        }
+    </style>
 <script type="importmap">
 {
   "imports": {

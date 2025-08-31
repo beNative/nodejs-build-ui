@@ -57,10 +57,8 @@ export interface ElectronAPI {
 
 // In a real Electron app, the preload script would expose the API on the window object.
 // To make TypeScript aware of this, you could extend the Window interface:
-/*
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
   }
 }
-*/
