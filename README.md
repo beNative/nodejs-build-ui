@@ -53,10 +53,10 @@ A user-friendly desktop application for managing and automating build, test, and
     npm run build
     ```
 
-5.  **Package the Electron app:**
-    (Packaging scripts using Electron Forge or Electron Builder would be added here).
+5.  **Package for Windows:**
+    This command will first build the production assets and then package them into a Windows installer (`.exe`) located in the `dist` folder.
     ```bash
-    npm run package # Example command
+    npm run package:win
     ```
 
 ## How to Use
