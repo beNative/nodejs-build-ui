@@ -1,6 +1,5 @@
 import React from 'react';
 import type { AppConfig, Command } from '../types';
-// Fix: Imported LogChannel to be used with the addLog function.
 import { CommandStatus, LogLevel, LogChannel } from '../types';
 import { FolderIcon, TerminalIcon, PlayIcon, CheckCircleIcon, XCircleIcon, SpinnerIcon, TrashIcon } from './Icons';
 import electronAPI from '../services/electronAPI';
@@ -17,7 +16,6 @@ const AppCard: React.FC<AppCardProps> = ({ app, onViewLogs, onDeleteApp }) => {
     
     const runCommand = (command: Command) => {
         if (command.status === CommandStatus.RUNNING) return;
-        // Fix: Added the missing LogChannel.APP argument to the addLog call.
         addLog(LogChannel.APP, LogLevel.INFO, `Executing command "${command.script}" for app "${app.name}".`);
         electronAPI.runCommand(app.id, command.id, app.path, command.script);
     };
